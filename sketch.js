@@ -161,9 +161,9 @@ const fragSource = `
   }
 `;
 
-// --- NEW: PRELOAD AUDIO SO IT'S READY IMMEDIATELY ---
+// --- PRELOAD THE AUDIO FILE ---
 function preload() {
-  track = loadSound('resources/1_Jamburana.mp3');
+  track = loadSound('resources/1_Jamburana.mp3'); 
 }
 
 function setup() {
@@ -192,17 +192,20 @@ function setup() {
 
   const audioUpload = document.getElementById('audioUpload');
   const playBtn = document.getElementById('playBtn');
-  const recordBtn = document.getElementById('recordBtn');
 
-  // --- PLAY AUDIO ON START ---
-  track.play();
-  
-  if (playBtn) {
-    playBtn.disabled = false;
-    if (track.isPlaying()) {
-      playBtn.innerText = "Pause";
-    } else {
-      playBtn.innerText = "Play";
+  // ==========================================
+  // AUTOPLAY COMMAND
+  // Tells the browser to play instantly on load
+  // ==========================================
+  if (track) {
+    track.play();
+    if (playBtn) {
+      playBtn.disabled = false;
+      if (track.isPlaying()) {
+        playBtn.innerText = "Pause";
+      } else {
+        playBtn.innerText = "Play";
+      }
     }
   }
 
@@ -212,8 +215,10 @@ function setup() {
       if (file) {
         if (track) track.stop();
         track = loadSound(URL.createObjectURL(file), () => {
-          playBtn.disabled = false;
-          playBtn.innerText = "Play";
+          if (playBtn) {
+            playBtn.disabled = false;
+            playBtn.innerText = "Play";
+          }
         });
       }
     });
@@ -232,25 +237,12 @@ function setup() {
     });
   }
 
-  // REWIND ON RECORD
-  if (recordBtn) {
-    recordBtn.addEventListener('click', () => {
-      if (track) {
-        track.jump(0); 
-        if (!track.isPlaying()) {
-          track.play();
-          if (playBtn) playBtn.innerText = "Pause";
-        }
-      }
-    });
-  }
-
   // --- BIND HTML TO PARAMS OBJECT ---
   const textInput = document.getElementById('textStr');
   if (textInput) textInput.addEventListener('input', () => { params.textStr = textInput.value; });
   
   const textModeSelect = document.getElementById('textMode');
-  if (textModeSelect) textModeSelect.addEventListener('change', () => { params.textMode = textModeSelect.value; });
+  if (textModeSelect) textModeSelect.addEventListener('input', () => { params.textMode = textModeSelect.value; });
 
   setupColor('bgColor', 'bgColor');
   setupColor('colorCore', 'colorCore');
@@ -321,7 +313,8 @@ function analyzeEnergyMidVal() {
   return mid === 0 ? 0 : map(mid, energyThresholds.mid, 255, 0, 100);
 }
 
-// In case autoplay is blocked, waking up the audio context on click guarantees it starts
+// Invisible fallback: if the browser blocks the autoplay, clicking anywhere 
+// on the page will instantly bypass the block and start the music.
 function touchStarted() {
   if (getAudioContext().state !== 'running') {
     getAudioContext().resume();
