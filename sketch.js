@@ -163,6 +163,7 @@ const fragSource = `
 
 // --- PRELOAD THE AUDIO FILE ---
 function preload() {
+  // Be 100% sure the spelling below matches your GitHub file EXACTLY!
   track = loadSound('resources/1_Jamburana.mp3'); 
 }
 
@@ -194,8 +195,7 @@ function setup() {
   const playBtn = document.getElementById('playBtn');
 
   // ==========================================
-  // AUTOPLAY COMMAND
-  // Tells the browser to play instantly on load
+  // AUTOPLAY COMMAND (Tries its best to play immediately)
   // ==========================================
   if (track) {
     track.play();
@@ -270,6 +270,23 @@ function setup() {
   }).catch(err => console.error("Error loading font:", err));
 }
 
+// ==========================================
+// THE INVISIBLE AUTOPLAY BYPASS
+// If the browser blocks autoplay until the user clicks,
+// the very first time they click ANYWHERE on the page, this wakes the music up!
+// ==========================================
+function mousePressed() {
+  if (getAudioContext().state !== 'running') {
+    getAudioContext().resume();
+  }
+  
+  if (track && !track.isPlaying()) {
+    track.play();
+    const playBtn = document.getElementById('playBtn');
+    if (playBtn) playBtn.innerText = "Pause";
+  }
+}
+
 function preloadFontGrid() {
   if (!isFontLoaded) return;
   for (let wght = 100; wght <= 1000; wght += 40) {
@@ -311,14 +328,6 @@ function analyzeEnergyBassVal() {
 function analyzeEnergyMidVal() {
   let mid = energy.mid > energyThresholds.mid ? energy.mid : 0;
   return mid === 0 ? 0 : map(mid, energyThresholds.mid, 255, 0, 100);
-}
-
-// Invisible fallback: if the browser blocks the autoplay, clicking anywhere 
-// on the page will instantly bypass the block and start the music.
-function touchStarted() {
-  if (getAudioContext().state !== 'running') {
-    getAudioContext().resume();
-  }
 }
 
 function draw() {
