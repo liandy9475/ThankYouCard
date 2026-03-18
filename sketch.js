@@ -63,6 +63,7 @@ let fft;
 let amplitude;
 let energy = {};
 const bassEmphasis = 0.55;
+let userHasInteracted = false; // Prevents mousePressed from restarting music after pausing
 
 const bands = {
   "bass": [20 * bassEmphasis, 140 * bassEmphasis],
@@ -276,14 +277,20 @@ function setup() {
 // the very first time they click ANYWHERE on the page, this wakes the music up!
 // ==========================================
 function mousePressed() {
-  if (getAudioContext().state !== 'running') {
-    getAudioContext().resume();
-  }
-  
-  if (track && !track.isPlaying()) {
-    track.play();
-    const playBtn = document.getElementById('playBtn');
-    if (playBtn) playBtn.innerText = "Pause";
+  // Only trigger this logic if it's the very first interaction
+  if (!userHasInteracted) {
+    if (getAudioContext().state !== 'running') {
+      getAudioContext().resume();
+    }
+    
+    if (track && !track.isPlaying()) {
+      track.play();
+      const playBtn = document.getElementById('playBtn');
+      if (playBtn) playBtn.innerText = "Pause";
+    }
+    
+    // Set the flag to true so this never runs again!
+    userHasInteracted = true; 
   }
 }
 
